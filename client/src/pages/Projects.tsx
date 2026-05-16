@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Spinner } from '../components/ui/spinner';
-import { Plus, Users, Search } from 'lucide-react';
+import { Plus, Users, Search, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
 
@@ -72,6 +72,16 @@ export default function Projects() {
     }
   };
 
+  const handleDeleteProject = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this project?")) return;
+    try {
+      await api.delete(`/projects/${id}`);
+      fetchProjects();
+    } catch (error) {
+      console.error('Failed to delete project', error);
+    }
+  };
+
   const filteredProjects = projects.filter((p) =>
     p.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -116,8 +126,24 @@ export default function Projects() {
             <motion.div key={project._id} variants={itemVariants}>
               <Card className="flex flex-col h-full bg-black/40 hover:bg-black/60">
                 <CardHeader>
-                  <CardTitle className="text-base">{project.title}</CardTitle>
-                  <CardDescription className="line-clamp-2 text-xs mt-1.5">{project.description}</CardDescription>
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <CardTitle className="text-base">{project.title}</CardTitle>
+                      <CardDescription className="line-clamp-2 text-xs mt-1.5">{project.description}</CardDescription>
+                    </div>
+                    {user?.role === 'Admin' && (
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteProject(project._id);
+                        }} 
+                        className="text-muted-foreground hover:text-red-400 transition-colors p-1.5 rounded-md hover:bg-red-400/10 shrink-0"
+                        title="Delete Project"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
                   <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">

@@ -4,7 +4,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Spinner } from '../components/ui/spinner';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
 
@@ -101,6 +101,16 @@ export default function Tasks() {
     }
   };
 
+  const handleDeleteTask = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    try {
+      await api.delete(`/tasks/${id}`);
+      fetchTasks();
+    } catch (error) {
+      console.error('Failed to delete task', error);
+    }
+  };
+
   const updateTaskStatus = async (taskId: string, newStatus: string) => {
     try {
       await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
@@ -167,6 +177,18 @@ export default function Tasks() {
                           <CardContent className="p-4 space-y-3">
                             <div className="flex justify-between items-start gap-2">
                               <h4 className="font-medium text-sm text-white leading-snug">{task.title}</h4>
+                              {user?.role === 'Admin' && (
+                                <button 
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDeleteTask(task._id);
+                                  }} 
+                                  className="text-muted-foreground hover:text-red-400 transition-colors p-1 rounded-md hover:bg-red-400/10 shrink-0"
+                                  title="Delete Task"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
                             </div>
                             <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
                             
