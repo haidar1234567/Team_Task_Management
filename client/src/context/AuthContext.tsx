@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const { data } = await api.get('/auth/me');
+        const { data } = await api.get('/api/auth/me');
         setUser(data.data);
       } catch (error) {
         logout();
