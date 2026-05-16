@@ -23,7 +23,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/api/auth/login', { email, password });
       login(data.data.token, data.data);
       navigate('/dashboard');
     } catch (err: any) {
@@ -45,7 +45,7 @@ export default function Login() {
       >
         <div className="mb-8 text-center flex flex-col items-center">
           <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-button-primary mb-4">
-             <span className="text-white font-bold text-lg">N</span>
+            <span className="text-white font-bold text-lg">N</span>
           </div>
           <h1 className="text-2xl font-semibold text-white tracking-tight">Welcome back</h1>
           <p className="text-sm text-muted-foreground mt-1">Please enter your details to sign in.</p>
@@ -56,7 +56,7 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <AnimatePresence>
                 {error && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
@@ -66,7 +66,7 @@ export default function Login() {
                   </motion.div>
                 )}
               </AnimatePresence>
-              
+
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Email address</label>
                 <Input
@@ -87,7 +87,7 @@ export default function Login() {
                   required
                 />
               </div>
-              
+
               <div className="pt-2">
                 <Button type="submit" className="w-full h-10" disabled={loading}>
                   {loading ? <Spinner className="mr-2" /> : null}
