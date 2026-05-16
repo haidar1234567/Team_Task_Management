@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Spinner } from '../components/ui/spinner';
-import { Badge } from '../components/ui/badge';
 import { Plus, Users, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
 
 interface Project {
@@ -16,6 +16,19 @@ interface Project {
   members: { _id: string; name: string }[];
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } }
+};
+
 export default function Projects() {
   const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -23,7 +36,6 @@ export default function Projects() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   
-  // Create Project State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
@@ -68,8 +80,8 @@ export default function Projects() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-          <p className="text-muted-foreground">Manage and view your team's projects.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Projects</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage and view your team's initiatives.</p>
         </div>
         {user?.role === 'Admin' && (
           <Button onClick={() => setShowCreateModal(true)}>
@@ -79,77 +91,96 @@ export default function Projects() {
         )}
       </div>
 
-      <div className="relative w-full md:w-96">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="relative w-full md:w-80">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
           placeholder="Search projects..."
-          className="pl-8"
+          className="pl-9 bg-background border-white/10 focus-visible:border-white/30"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       {loading ? (
-        <div className="flex h-40 items-center justify-center">
-          <Spinner className="h-8 w-8 text-primary" />
+        <div className="flex h-64 items-center justify-center">
+          <Spinner className="h-6 w-6 text-muted-foreground" />
         </div>
       ) : filteredProjects.length === 0 ? (
-        <div className="flex h-40 items-center justify-center rounded-lg border border-dashed">
-          <p className="text-muted-foreground">No projects found.</p>
+        <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
+          <p className="text-sm text-muted-foreground">No projects found.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredProjects.map((project) => (
-            <Card key={project._id} className="flex flex-col hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle>{project.title}</CardTitle>
-                <CardDescription className="line-clamp-2">{project.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="mt-auto pt-4 flex items-center justify-between border-t text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span>{project.members.length} Members</span>
-                </div>
-                <Badge variant="secondary">Active</Badge>
-              </CardContent>
-            </Card>
+            <motion.div key={project._id} variants={itemVariants}>
+              <Card className="flex flex-col h-full bg-black/40 hover:bg-black/60">
+                <CardHeader>
+                  <CardTitle className="text-base">{project.title}</CardTitle>
+                  <CardDescription className="line-clamp-2 text-xs mt-1.5">{project.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
+                    <Users className="h-3.5 w-3.5" />
+                    <span>{project.members.length} Members</span>
+                  </div>
+                  <div className="text-[10px] uppercase font-semibold tracking-wider text-white/50 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                    Active
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
-      {/* Create Modal - A simple overlay for MVP */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md shadow-lg border-2">
-            <CardHeader>
-              <CardTitle>Create New Project</CardTitle>
-              <CardDescription>Add a new project for your team.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreateProject} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Project Title</label>
-                  <Input required value={title} onChange={(e) => setTitle(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Description</label>
-                  <Input required value={description} onChange={(e) => setDescription(e.target.value)} />
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createLoading}>
-                    {createLoading ? <Spinner className="mr-2" /> : null}
-                    Create
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Create Modal */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-md"
+            >
+              <Card className="shadow-2xl">
+                <CardHeader>
+                  <CardTitle>New Project</CardTitle>
+                  <CardDescription>Create a new workspace for your team.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleCreateProject} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Name</label>
+                      <Input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project Alpha" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Description</label>
+                      <Input required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description of the goals..." />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button type="button" variant="ghost" onClick={() => setShowCreateModal(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={createLoading}>
+                        {createLoading ? <Spinner className="mr-2" /> : null}
+                        Create Project
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
